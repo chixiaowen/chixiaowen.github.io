@@ -1,0 +1,695 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Chixiaowen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="共识算法之Raft背景随着区块链及分布式场景的广泛应用，如何确保服务在出现网络延时、宕机或者作恶等故障情况下仍然能够得到安全一致的世界状态。此时大量的共识机制、共识算法应运而生。我们可以根据可以容忍的故障类型将这些共识算法分成两个大类：  宕机容错类算法（crash fault tolerant consensus algorithm），可以容忍网络丢包、时钟漂移、部分节点宕机这种节点为良性的错误">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Consensus Algo of Raft">
+<meta property="og:url" content="https://chixiaowen.github.io/2023/03/01/raft/index.html">
+<meta property="og:site_name" content="Chixiaowen&#39;s Blog">
+<meta property="og:description" content="共识算法之Raft背景随着区块链及分布式场景的广泛应用，如何确保服务在出现网络延时、宕机或者作恶等故障情况下仍然能够得到安全一致的世界状态。此时大量的共识机制、共识算法应运而生。我们可以根据可以容忍的故障类型将这些共识算法分成两个大类：  宕机容错类算法（crash fault tolerant consensus algorithm），可以容忍网络丢包、时钟漂移、部分节点宕机这种节点为良性的错误">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/DwzIGNK.jpg">
+<meta property="og:image" content="https://i.imgur.com/1J1oBlB.jpg">
+<meta property="og:image" content="https://i.imgur.com/3LW8CnA.jpg">
+<meta property="og:image" content="https://i.imgur.com/9h7Gesw.png">
+<meta property="og:image" content="https://i.imgur.com/lkMGl8L.jpg">
+<meta property="og:image" content="https://i.imgur.com/Ezttbfm.png">
+<meta property="og:image" content="https://i.imgur.com/IiWlWCv.png">
+<meta property="article:published_time" content="2023-03-01T05:30:22.729Z">
+<meta property="article:modified_time" content="2023-03-01T08:53:13.919Z">
+<meta property="article:author" content="Chixiaowen">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://i.imgur.com/DwzIGNK.jpg">
+  
+  
+  
+  <title>Consensus Algo of Raft - Chixiaowen&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"chixiaowen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Chixiaowen&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Consensus Algo of Raft"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-03-01 13:30" pubdate>
+          March 1, 2023 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          39 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Consensus Algo of Raft</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="共识算法之Raft"><a href="#共识算法之Raft" class="headerlink" title="共识算法之Raft"></a>共识算法之Raft</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>随着区块链及分布式场景的广泛应用，如何确保服务在出现网络延时、宕机或者作恶等故障情况下仍然能够得到安全一致的世界状态。此时大量的共识机制、共识算法应运而生。我们可以根据可以容忍的故障类型将这些共识算法分成两个大类：</p>
+<ul>
+<li>宕机容错类算法（crash fault tolerant consensus algorithm），可以容忍网络丢包、时钟漂移、部分节点宕机这种节点为良性的错误。常见算法有<code>Paxos</code>、<code>Raft</code>等。</li>
+<li>拜占庭容错类算法（byzantine fault tolerant consensus algorithm），可以容忍部分节点任意类型错误，包括节点作恶的情况。常见算法有<code>PBFT</code>、<code>Tbft</code>、中本聪共识等。</li>
+</ul>
+<p>本文主要介绍<code>Raft</code>共识算法，由于在考虑到<code>Paxos</code>的难理解性以及该算法在实际工程应用中难以实现的特性，<code>Raft</code>共识算法在保证算法安全、可靠、高效的同时，该算法最大的设计挑战就是可理解性，并且在工程上容易实现。</p>
+<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p><code>Raft</code>是一种为了管理复制日志的一致性算法。它提供了和<code>Paxos</code>算法相同的功能和性能，但是它的算法结构和<code>Paxos</code>不同，使得<code>Raft</code>算法更加容易理解并且更容易构建实际的系统。为了提升可理解性，<code>Raft</code>将一致性算法分解成了几个关键模块，例如领导人选举、日志复制、日志压缩和安全机制等。<code>Raft</code>算法比<code>Paxos</code>算法更加容易学习。<code>Raft</code>算法还包括一个新的机制来允许集群成员的动态改变，它利用大多数重叠来保证安全性。</p>
+<h2 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h2><ul>
+<li><strong>强领导特性</strong>：和其他一致性算法相比，<code>Raft</code>算法使用一种更强的领导能力形式。比如，日志条目只从领导人发送给其他的服务器。这种方式简化了对复制日志的管理并且使得<code>Raft</code>算法更加易于理解。</li>
+<li><strong>领导选举</strong>：<code>Raft</code>算法使用一个随机超时计时器来选举领导人。并且在成为领导人后通过发送心跳信息来显示自己的领导权威。这种方式在解决领导选举冲突的时候会更加简单快捷。</li>
+<li><strong>集群成员变更</strong>：<code>Raft</code>算法使用一种共同一致的方法来处理集群成员变换的问题，在这种方法下，处于调整过程中的两种不同的配置集群中大多数机器会有重叠，这就使得集群在成员变换的时候依然可以正常工作。</li>
+</ul>
+<p><strong>注：</strong> 通常的一致性算法都具有安全性、一致性及终止性。</p>
+<h2 id="复制状态机"><a href="#复制状态机" class="headerlink" title="复制状态机"></a>复制状态机</h2><p><code>Raft</code>一致性算法是基于复制状态机的背景下提出来的。在这种背景下，一组服务器上的状态机产生相同状态的副本。并且在一些机器宕掉的情况下也可以继续运行。复制状态机在分布式系统中被用于解决很多容错的问题。</p>
+<p><img src="https://i.imgur.com/DwzIGNK.jpg" srcset="/img/loading.gif" lazyload><br>每一个服务器存储一个包含一系列指令的日志，并且按照日志的顺序进行执行。每一个日志都按照相同的顺序，每一个服务器都执行相同的指令序列。由于每个状态机都是确定的，所以每一个服务器执行日志操作指令都能产生相同的状态。</p>
+<h2 id="Leader选举"><a href="#Leader选举" class="headerlink" title="Leader选举"></a>Leader选举</h2><h3 id="节点状态"><a href="#节点状态" class="headerlink" title="节点状态"></a>节点状态</h3><ul>
+<li><code>Leader</code>（领导者）: 正常情况下，集群中只有一个<code>Leader</code>, 负责处理客户端的写请求、日志复制、向<code>Follower</code>定期发送心跳信息。</li>
+<li><code>Follower</code> (跟随者) : <code>Follower</code>会从<code>Leader</code>接收日志并提交本地日志信息。正常情况下不会主动发出请求；当超过一定时间没有收到来自<code>Leader</code>的心跳信息，就会<code>election time out</code>，成为<code>Candidate</code>。</li>
+<li><code>Candidate</code> (候选者) : 如果<code>Leader</code>宕机或者断开连接，会选出新的<code>Leader</code>节点。<code>Candidate</code>节点向其他节点发送请求投票的<code>RPC</code>消息，如果赢得了大多数选票，就成为 <code>Leader</code>。</li>
+<li><img src="https://i.imgur.com/1J1oBlB.jpg" srcset="/img/loading.gif" lazyload></li>
+</ul>
+<p><strong>注：</strong> 节点之间是通过<code>RPC</code>进行通信。</p>
+<h3 id="任期"><a href="#任期" class="headerlink" title="任期"></a>任期</h3><p><code>Term</code>(任期)：时间被划分成一个个的任期，每个任期始于一次选举。在选举成功后，领导人会管理整个集群直到任期结束。有时候选举会失败，那么这个任期就会没有领导人而结束，然后会进入到下一个任期继续选举。任期之间的切换可以在不同的时间不同的服务器上观察到。<br><img src="https://i.imgur.com/3LW8CnA.jpg" srcset="/img/loading.gif" lazyload></p>
+<h3 id="选举过程"><a href="#选举过程" class="headerlink" title="选举过程"></a>选举过程</h3><p>初始化启动时：所有节点都处于<code>Follower</code>状态，当有节点率先超时时，该节点就会变成<code>Candidate</code>状态。节点的任期会增加同时节点会给集群中的其他节点发送选举投票消息(<code>RequestVote RPC</code>)。当投票数量超过半数节点时，该节点就会变成<code>Leader</code>节点同时该节点会向集群中的其他节点发送心跳(<code>AppendEntries RPCs</code>)，不携带<code>log entries</code>。发送心跳的目的是为了显示自己的领导地位。<br><img src="https://i.imgur.com/9h7Gesw.png" srcset="/img/loading.gif" lazyload><br>上述情况是比较正常的情况，其实当节点处于<code>Candidate</code>时会出现三种情况：</p>
+<ul>
+<li>该节点赢得大多数投票并成为<code>Leader</code>节点。</li>
+<li>集群中其他节点赢得大多数投票并成为<code>Leader</code>节点。</li>
+<li>这一轮中没有节点能胜出然后会进入下一轮选举。</li>
+</ul>
+<p><strong>注：</strong> 可通过<a target="_blank" rel="noopener" href="https://raft.github.io/">Raft官网</a>动画演示上述几种情况。</p>
+<h2 id="日志复制"><a href="#日志复制" class="headerlink" title="日志复制"></a>日志复制</h2><h3 id="日志条目"><a href="#日志条目" class="headerlink" title="日志条目"></a>日志条目</h3><p>当<code>Leader</code>被选举出来后，它就可以为客户端服务，客户端的每一个请求都包含一条被复制状态机执行的指令。领导人把这条指令作为一条新的日志条目附加到日志中去，然后并行地发起<code>AppendEntries RPCs</code>给其他的服务器，让他们复制这条日志条目。领导人会不断的重复尝试发送请求,直到所有的跟随者都最终存储了所有的日志条目。<br><img src="https://i.imgur.com/lkMGl8L.jpg" srcset="/img/loading.gif" lazyload><br>日志由有序序号标记的条目组成。每个条目都包含创建时的任期号和一个状态机需要执行的指令。一个条目当可以安全地被应用到状态机中去的时候，就认为是可以提交了。日志的提交是由<code>Leader</code>决定的。</p>
+<h3 id="复制过程"><a href="#复制过程" class="headerlink" title="复制过程"></a>复制过程</h3><ul>
+<li>客户端向<code>Leader</code>节点发送写入指令请求。</li>
+<li><code>Leader</code>节点将基于指令创建新的日志条目并存入本地日志，与此同时，<code>Leader</code>节点通过<code>AppendEntries RPCs</code>向集群中的其他节点进行日志复制请求。</li>
+<li><code>Follower</code>节点成功收到日志复制消息后存入本地日志，并应答成功，此时的日志还未真正提交。</li>
+<li><code>Leader</code>节点收到大多数成功应答后开始将日志指令提交到状态机中执行并反馈给客户端写入成功的响应，于此同时，<code>Leader</code>节点向集群中其他节点发送<code>AppendEntries RPCs</code>时会携带新的<code>leaderCommit</code>，也就是<code>Leader</code>最新提交日志的索引，<code>Follower</code>会根据此信息同步提交本地相同索引日志。</li>
+<li>当大多数日志条目被成功写入后就称这些日志条目为<code>committed entries</code>.</li>
+</ul>
+<p><img src="https://i.imgur.com/Ezttbfm.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="日志匹配特性"><a href="#日志匹配特性" class="headerlink" title="日志匹配特性"></a>日志匹配特性</h3><p><code>Raft</code>中日志匹配机制是用来维护不同服务器日志之间一致性，可预测性。同时它是安全性保证的重要环节。<code>Raft</code>日志匹配特性如下:</p>
+<ul>
+<li>如果在不同节点的日志中有两个条目拥有相同的索引及任期号，那么他们就存储了相同的指令。</li>
+<li>如果在不同节点的日志中有两个条目拥有相同的索引及任期号，那么他们之前的所有日志条目也全部相同。</li>
+</ul>
+<p>在<code>Raft</code>算法中，<code>Leader</code>是通过强制<code>Follower</code>直接复制自己的日志来处理不一致问题的。这意味着在<code>Follower</code>中的冲突的日志条目会被<code>Leader</code>的日志覆盖。要使得<code>Follower</code>的日志和自己的日志状态保持一致，<code>Leader</code>必须找到最后两者达成一致的地方，然后删除<code>Follower</code>从那个点之后的所有日志条目，并发送自己在那个点之后的日志给<code>Follower</code>。所有的这些操作都在发送<code>AppendEntries RPCs</code>请求时进行的一致性检查时完成。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><h3 id="选举限制"><a href="#选举限制" class="headerlink" title="选举限制"></a>选举限制</h3><p>如果一个<code>Follower</code>宕机了，同时<code>Leader</code>也已经提交了很多日志指令，然后这个<code>Follower</code>可能会被重新选举成为新的<code>Leader</code>,那么此时新的<code>Leader</code>会如何处理日志复制呢？<br>由于上面这种情况<code>Raft</code>算法在进行领导选举时会对即将成为<code>Leader</code>的节点做一些限制，具体限制如下：</p>
+<ul>
+<li>日志条目是单向传送，只能从<code>Leader</code>到<code>Follower</code>。</li>
+<li>候选人想要赢得选举，必须包含已提交最新的日志条目。</li>
+<li>如果两份日志最后的条目的任期号不同，那么任期号大的日志更加新。如果两份日志最后的条目任期号相同，那么日志比较长的那个就更加新。</li>
+</ul>
+<h3 id="提交前任日志条目"><a href="#提交前任日志条目" class="headerlink" title="提交前任日志条目"></a>提交前任日志条目</h3><p>当前<code>Leader</code>并不知道之前的任期里日志是否已经被提交，即使这条日志已经被复制到了多数派的服务器上。根据<code>Raft</code>协议，这条日志是不能被直接提交的。</p>
+<blockquote>
+<p>A leader knows that an entry from its current term is committed once that entry is stored on a majority of the servers. If a leader crashes before committing an entry, future leaders will attempt to finish replicating the entry. However, a leader cannot immediately conclude that an entry from a previous term is committed once it is stored on a majority of servers.</p>
+</blockquote>
+<p><img src="https://i.imgur.com/IiWlWCv.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li><p>a: <code>S1</code>是<code>Term:2</code>的<code>Leader</code>，复制了一条日志(<code>Term:2,Index:2</code>)到<code>S2</code>，同时它自己也写了一条日志(<code>Term:2,Index:2</code>)到本地。</p>
+</li>
+<li><p>b: <code>S1</code>此时宕机，<code>S5</code>获得<code>S3</code>、<code>S4</code>和<code>S5</code>的投票成为<code>Leader</code>，然后写了一条日志(<code>Term:3,Index:2</code>)到本地，此时日志都并未提交。</p>
+</li>
+<li><p>c: <code>S5</code>此时宕机，<code>S1</code>复活并且重新当选<code>Leader</code>(<code>Term:4</code>)，开始继续复制日志(<code>Term:2,Index:2</code>)到多数派服务器上(<code>S1</code>,<code>S2</code>,<code>S3</code>)上。然后又新写入一条日志(<code>Term:4,Index:3</code>)到本地,此时(<code>Term:2,Index:2</code>)和<code>(Term:4,Index:3</code>)上的日志并未提交。</p>
+<blockquote>
+<p>虽然(<code>Term:2,Index:2</code>)已经完成了多数派的复制，但是这条日志的<code>Term</code>是2，而当前的<code>S1</code>已经是<code>Term:4</code>的<code>Leader</code>，所有还不能直接提交。只有等到提交<code>Term</code>为4时任期内的日志(Term:4,Index:3)完成多数派复制后，才能把(<code>Term:4,Index:3</code>)和之前任期中的<code>Term:2,Index:2</code>）日志一并提交。</p>
+</blockquote>
+</li>
+<li><p>d: 根据c，此时<code>S1</code>宕机，<code>S5</code>当选<code>Leader</code> (<code>Term &gt;= 5</code>,voted from<code>S2</code>,<code>S3</code>,<code>S4</code>,<code>S5</code>) ，并将日志(<code>Term:3,Index:2</code>)复制到其他所有节点并成功提交。</p>
+</li>
+<li><p>e: 根据c，此时(<code>Term4,Index:3</code>)及他前面所有的日志都已经提交了，如果这个时候S1才宕机，那么再重新选举<code>Leader</code>时，只有<code>S2</code>或者<code>S3</code>中的一个才能被选为新的<code>Leader</code>，证明<code>Raft</code>能够保证只要是在当前<code>Term</code>时成功完成多数派复制的日志肯定会被提交，且已提交的日志不可能被覆盖。</p>
+</li>
+</ul>
+<p>但是在分布式系统中，网络不可靠是一个大概率的问题，情况(d)虽然发生的概率不高，但是只要系统运行的时间足够长，这种情况总是可以出现。为了处理(d)这种情况，<code>Raft</code>共识算法永远不会通过计算副本数目的方式去提交一个之前任期内的日志条目。只有领导人当前任期里的日志条目通过计算副本数目可以被提交，一旦当前任期的日志条目以这种方式被提交，那么由于日志匹配特性，之前的日志条目也都会被间接的提交。</p>
+<p>本文主要介绍<code>Raft</code>共识算法<code>Leader</code>选举，日志复制以及安全性等方面内容，更多如安全性论证、成员变更、日志压缩等方面内容可参考如下论文：<br>(1) <a target="_blank" rel="noopener" href="https://raft.github.io/raft.pdf">https://raft.github.io/raft.pdf</a><br>(2) <a target="_blank" rel="noopener" href="https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf">https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Consensus Algo of Raft</div>
+      <div>https://chixiaowen.github.io/2023/03/01/raft/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Chixiaowen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>March 1, 2023</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
