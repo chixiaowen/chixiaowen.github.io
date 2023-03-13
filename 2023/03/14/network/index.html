@@ -1,0 +1,715 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Chixiaowen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="网络协议基本原理面试要点 什么是TCP&#x2F;IP? TCP建立连接为什么要三次握手，断开连接时为什么又要四次挥手呢？ SSL&#x2F;TLS握手过程？  网络分层模型OSI七层网络模型OSI模型：Open System Interconnection，开放式系统互联。国际标准化组织（ISO）制定的理论模型。 TCP&#x2F;IP四层网络模型TCP&#x2F;IP模型：基于OSI建立的实际实现的模型。 计算机网络体系结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="network protocol">
+<meta property="og:url" content="https://chixiaowen.github.io/2023/03/14/network/index.html">
+<meta property="og:site_name" content="Chixiaowen&#39;s Blog">
+<meta property="og:description" content="网络协议基本原理面试要点 什么是TCP&#x2F;IP? TCP建立连接为什么要三次握手，断开连接时为什么又要四次挥手呢？ SSL&#x2F;TLS握手过程？  网络分层模型OSI七层网络模型OSI模型：Open System Interconnection，开放式系统互联。国际标准化组织（ISO）制定的理论模型。 TCP&#x2F;IP四层网络模型TCP&#x2F;IP模型：基于OSI建立的实际实现的模型。 计算机网络体系结">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/x3BCFW9.jpg">
+<meta property="og:image" content="https://i.imgur.com/XCadbAE.png">
+<meta property="og:image" content="https://i.imgur.com/K9Wc4ka.png">
+<meta property="og:image" content="https://i.imgur.com/wT4bg8L.png">
+<meta property="og:image" content="https://i.imgur.com/IphUokf.png">
+<meta property="og:image" content="https://i.imgur.com/3tRawnN.png">
+<meta property="og:image" content="https://i.imgur.com/CpoxnwA.png">
+<meta property="article:published_time" content="2023-03-13T16:11:08.533Z">
+<meta property="article:modified_time" content="2023-03-13T16:13:32.663Z">
+<meta property="article:author" content="Chixiaowen">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://i.imgur.com/x3BCFW9.jpg">
+  
+  
+  
+  <title>network protocol - Chixiaowen&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"chixiaowen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Chixiaowen&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="network protocol"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-03-14 00:11" pubdate>
+          March 14, 2023 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">network protocol</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="网络协议基本原理"><a href="#网络协议基本原理" class="headerlink" title="网络协议基本原理"></a>网络协议基本原理</h1><h2 id="面试要点"><a href="#面试要点" class="headerlink" title="面试要点"></a>面试要点</h2><ul>
+<li>什么是<code>TCP/IP</code>?</li>
+<li><code>TCP</code>建立连接为什么要三次握手，断开连接时为什么又要四次挥手呢？</li>
+<li><code>SSL/TLS</code>握手过程？</li>
+</ul>
+<h2 id="网络分层模型"><a href="#网络分层模型" class="headerlink" title="网络分层模型"></a>网络分层模型</h2><h3 id="OSI七层网络模型"><a href="#OSI七层网络模型" class="headerlink" title="OSI七层网络模型"></a>OSI七层网络模型</h3><p><code>OSI</code>模型：Open System Interconnection，开放式系统互联。国际标准化组织（<code>ISO</code>）制定的理论模型。<br><img src="https://i.imgur.com/x3BCFW9.jpg" srcset="/img/loading.gif" lazyload></p>
+<h3 id="TCP-x2F-IP四层网络模型"><a href="#TCP-x2F-IP四层网络模型" class="headerlink" title="TCP&#x2F;IP四层网络模型"></a>TCP&#x2F;IP四层网络模型</h3><p><code>TCP/IP</code>模型：基于<code>OSI</code>建立的实际实现的模型。<br><img src="https://i.imgur.com/XCadbAE.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="计算机网络体系结构分层"><a href="#计算机网络体系结构分层" class="headerlink" title="计算机网络体系结构分层"></a>计算机网络体系结构分层</h3><table>
+    <tr>
+        <td>OSI七层模型</td>
+        <td>TCP/IP概念层模型</td>
+        <td>功能</td>
+        <td>TCP/IP协议族</td>
+    </tr>
+    <tr>
+        <td>应用层</td>
+        <td rowspan="3">应用层</td>
+        <td>文件传输，电子邮件，文件服务，虚拟终端</td>
+        <td>HTTP、SMTP、SNMP、FTP、Telnet、SIP、SSH、NFS、RTSP、XMPP、Whois、ENRP、TLS</td>
+    </tr>
+    <tr>
+        <td>表示层</td>
+        <td>数据格式化，代码转换，数据加密</td>
+        <td>XDR、ASN.1、NCP、TLS、ASCII</td>
+    </tr>
+    <tr>
+        <td>会话层</td>
+        <td>保证多个参与方之间交互的控制</td>
+    </tr>
+    <tr>
+        <td>传输层</td>
+        <td>传输层</td>
+        <td>为上层提供数据可靠性传输服务</td>
+        <td>TCP、UDP、RTP、SCTP、SPX、ATP、IL</td>
+    </tr>
+    <tr>
+        <td>网络层</td>
+        <td>网络层</td>
+        <td>创建统一协议，通过路由将多个网络连接起来</td>
+        <td>IP、ICMP、IPX、BGP、OSPF、RIP、IGRP、EIGRP、ARP、RARP、X.25</td>
+    </tr>
+    <tr>
+        <td>数据链路层</td>
+        <td rowspan="2">网络接口层（链路层）</td>
+        <td>保证帧数据的传递</td>
+        <td>以太网、令牌环、HDLC、帧中继、ISDN、ATM、IEEE 802.11、FDDI、PPP</td>
+    </tr>
+    <tr>
+        <td>物理层</td>
+        <td>处理字节流的传输</td>
+        <td>调制解调器、无线电、光纤</td>
+    </tr>
+</table>
+
+<h3 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h3><p>应用层和内核互通的机制，就是通过socket系统调用。那socket属于那一层呢？其实它哪一层都不属于，它属于操作系统的概念，而非网络协议分层的概念。只不过操作系统选择对于网络协议的实现模式是，二到四层的处理代码在内核里面，七层的处理代码让应用自己去做，两者需要跨内核态和用户态通信，就需要一个系统调用完成这个衔接，这就是socket。</p>
+<h3 id="ISO-x2F-OSI参考模型-数据处理流程"><a href="#ISO-x2F-OSI参考模型-数据处理流程" class="headerlink" title="ISO&#x2F;OSI参考模型 数据处理流程"></a>ISO&#x2F;OSI参考模型 数据处理流程</h3><p><img src="https://i.imgur.com/K9Wc4ka.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li>应用程序处理：应用层会对程序进行编码处理，这些编码相当于表示层的功能，对于何时建立连接以及何时发送数据的管理就是会话层的功能。</li>
+<li>传输层处理：已TCP为例，负责建立连接，发送数据以及断开连接。发送数据时需要在应用层数据头部加上TCP首部。</li>
+<li>网络层处理：IP 将 TCP 传过来的 TCP 首部和 TCP 数据合起来当做自己的数据，并在 TCP 首部的前端加上自己的 IP 首部。IP 包生成后，参考路由控制表决定接受此 IP 包的路由或主机。</li>
+<li>网络接口层：</li>
+</ul>
+<h3 id="传输层中的TCP和UDP"><a href="#传输层中的TCP和UDP" class="headerlink" title="传输层中的TCP和UDP"></a>传输层中的TCP和UDP</h3><ul>
+<li>TCP 是面向连接的、可靠的流协议。流就是指不间断的数据结构，当应用程序采用 TCP 发送消息时，虽然可以保证发送的顺序，但还是犹如没有任何间隔的数据流发送给接收端。TCP 为提供可靠性传输，实行“顺序控制”或“重发控制”机制。此外还具备“流控制（流量控制）”、“拥塞控制”、提高网络利用率等众多功能。</li>
+<li>UDP 是无连接的， 是不具有可靠性的数据报协议。细微的处理它会交给上层的应用去完成。在 UDP 的情况下，虽然可以确保发送消息的大小，却不能保证消息一定会到达。因此，应用有时会根据自己的需要进行重发处理。</li>
+<li>TCP 和 UDP 的优缺点无法简单地、绝对地去做比较：TCP 用于在传输层有必要实现可靠传输的情况；而在一方面，UDP 主要用于那些对高速传输和实时性有较高要求的通信或广播通信。TCP 和 UDP 应该根据应用的目的按需使用。</li>
+<li>传输层TCP和UDP协议里面，都有端口的概念，不同的应用监听不同的端口。</li>
+</ul>
+<h3 id="针对TCP编程"><a href="#针对TCP编程" class="headerlink" title="针对TCP编程"></a>针对TCP编程</h3><p><img src="https://i.imgur.com/wT4bg8L.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="单工、半双工和全双工"><a href="#单工、半双工和全双工" class="headerlink" title="单工、半双工和全双工"></a>单工、半双工和全双工</h3><ul>
+<li>单工：简单的说就是一方只能发信息，另方则只能收信息，通信是单向的。</li>
+<li>半双工：比单工先进一点，就是双方都能发信息，但同一时间则只能一方发信息。</li>
+<li>全双工：比半双工再先进一点，就是双方不仅都能发信息，而且能够同时发送。</li>
+</ul>
+<p><strong>注：</strong> TCP连接是全双工</p>
+<h3 id="TCP握手与挥手"><a href="#TCP握手与挥手" class="headerlink" title="TCP握手与挥手"></a>TCP握手与挥手</h3><p><img src="https://i.imgur.com/IphUokf.png" srcset="/img/loading.gif" lazyload></p>
+<p>四次挥手即终止TCP连接，就是指断开一个TCP连接时，需要客户端和服务端总共发送4个包以确认连接的断开。在socket编程中，这一过程由客户端或服务端任一方执行close来触发。<br><img src="https://i.imgur.com/3tRawnN.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li>第一次挥手： Client端发起挥手请求，向Server端发送标志位是FIN报文段，设置序列号seq，此时，Client端进入FIN_WAIT_1状态，这表示Client端没有数据要发送给Server端了。</li>
+<li>第二次分手：Server端收到了Client端发送的FIN报文段，向Client端返回一个标志位是ACK的报文段，ack设为seq加1，Client端进入FIN_WAIT_2状态，Server端告诉Client端，我确认并同意你的关闭请求。</li>
+<li>第三次分手： Server端向Client端发送标志位是FIN的报文段，请求关闭连接，同时Client端进入LAST_ACK状态。</li>
+<li>第四次分手 ： Client端收到Server端发送的FIN报文段，向Server端发送标志位是ACK的报文段，然后Client端进入TIME_WAIT状态。Server端收到Client端的ACK报文段以后，就关闭连接。此时，Client端等待2MSL的时间后依然没有收到回复，则证明Server端已正常关闭，那好，Client端也可以关闭连接了。</li>
+</ul>
+<blockquote>
+<p>为什么连接的时候是三次握手，关闭的时候却是四次握手？<br>建立连接时因为当Server端收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文。其中ACK报文是用来应答的，SYN报文是用来同步的。所以建立连接只需要三次握手。<br>由于TCP协议是一种面向连接的、可靠的、基于字节流的运输层通信协议，TCP是<em><strong>全双工</strong></em>模式。这就意味着，关闭连接时，当Client端发出FIN报文段时，只是表示Client端告诉Server端数据已经发送完毕了。当Server端收到FIN报文并返回ACK报文段，表示它已经知道Client端没有数据发送了，但是Server端还是可以发送数据到Client端的，所以Server很可能并不会立即关闭SOCKET，直到Server端把数据也发送完毕。当Server端也发送了FIN报文段时，这个时候就表示Server端也没有数据要发送了，就会告诉Client端，我也没有数据要发送了，之后彼此就会愉快的中断这次TCP连接。</p>
+</blockquote>
+<h3 id="针对UDP编程"><a href="#针对UDP编程" class="headerlink" title="针对UDP编程"></a>针对UDP编程</h3><p><img src="https://i.imgur.com/CpoxnwA.png" srcset="/img/loading.gif" lazyload><br>UDP是没有连接的，所以不需要三次握手，也就不需要调用listen和connect，但是UDP的交互仍然需要IP地址和端口号，因而也需要bind。对于UDP来讲，没有所谓的连接维护，也没有所谓的连接的发起方和接收方，甚至都不存在客户端和服务端的概念。大家都是客户端，也同时是服务端。只要有一个socket，多台机器就可以任意通信，不存在哪两台机器是属于一个连接的概念。因此，每一个UDP的socket都需要bind，。每次通信时，调用 sendto 和 recvfrom，都要传入 IP 地址和端口。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>network protocol</div>
+      <div>https://chixiaowen.github.io/2023/03/14/network/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Chixiaowen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>March 14, 2023</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/03/01/raft/" title="Consensus Algo of Raft">
+                        <span class="hidden-mobile">Consensus Algo of Raft</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
